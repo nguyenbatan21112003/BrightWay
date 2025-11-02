@@ -1,16 +1,20 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
-from models.schemas import TestRequest
-from system.ai_generator import generate_from_scenario
-from reports.report_generator import render_report_to_html
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from .models.schemas import TestRequest
+from .system.ai_generator import generate_from_scenario
+from .reports.report_generator import render_report_to_html
 from pathlib import Path
 
 app = FastAPI(title="AI Testcase Generator", version="0.1.0")
 
+# Xác định thư mục gốc của ứng dụng
+BASE_DIR = Path(__file__).resolve().parent
 
-@app.get("/")
-def root():
-    return {"message": "AI Testcase Generator API đang chạy"}
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    with open(BASE_DIR / "frontend/index.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
 
 
 @app.post("/generate_test")

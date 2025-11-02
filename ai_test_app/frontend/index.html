@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Test Case Generator</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px auto; max-width: 800px; line-height: 1.6; font-size: 18px; color: #333; padding: 0 20px; }
+        h1 { font-size: 2.5em; text-align: center; color: #111; }
+        form { background: #f9f9f9; padding: 25px; border-radius: 8px; border: 1px solid #ddd; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; font-size: 1em; }
+        textarea { resize: vertical; min-height: 120px; }
+        button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; width: 100%; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 25px; padding: 15px; border-radius: 4px; }
+        .success { background-color: #e7f7e7; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loader { text-align: center; margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>AI Test Case Generator</h1>
+
+    <form id="test-form">
+        <label for="project_name">Tên dự án:</label>
+        <input type="text" id="project_name" name="project_name" required value="E-commerce Checkout">
+
+        <label for="scenario">Kịch bản (Scenario):</label>
+        <textarea id="scenario" name="scenario" required>Người dùng thêm sản phẩm vào giỏ và thanh toán thành công.</textarea>
+
+        <label for="requirements">Yêu cầu (Requirements):</label>
+        <textarea id="requirements" name="requirements">Kiểm tra tính năng thêm sản phẩm, tính tổng tiền, thanh toán thành công.</textarea>
+
+        <button type="submit">Bắt đầu sinh Testcase</button>
+    </form>
+
+    <div class="loader" id="loader">Đang xử lý, vui lòng chờ...</div>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('test-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const resultDiv = document.getElementById('result');
+            const loader = document.getElementById('loader');
+            resultDiv.innerHTML = '';
+            loader.style.display = 'block';
+
+            const formData = {
+                project_name: document.getElementById('project_name').value,
+                scenario: document.getElementById('scenario').value,
+                requirements: document.getElementById('requirements').value
+            };
+
+            try {
+                const response = await fetch('/generate_test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                loader.style.display = 'none';
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Có lỗi xảy ra từ server.');
+                }
+                
+                resultDiv.className = 'success';
+                resultDiv.innerHTML = `
+                    <p>${data.message}</p>
+                    <p>Số testcase: ${data.testcases_count}</p>
+                    <p>
+                        Tải báo cáo tại: 
+                        <a href="/download_report?path=${data.report_path}" target="_blank">Xem báo cáo</a>
+                    </p>
+                `;
+
+            } catch (error) {
+                loader.style.display = 'none';
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '<p><strong>Lỗi!</strong> ' + error.message + '</p>';
+            }
+        });
+    </script>
+
+</body>
+</html>
