@@ -3,3 +3,5 @@ uvicorn[standard]
 jinja2
 reportlab
 openpyxl
+google-generativeai
+python-dotenv

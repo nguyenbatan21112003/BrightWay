@@ -1,8 +1,11 @@
-from typing import List
+from typing import List, Optional
 from ..models.schemas import TestCase
 
-
-def generate_basic_testcases(project_name: str, scenario: str, requirements: str | None = None) -> List[TestCase]:
+def generate_basic_testcases(
+    project_name: str,
+    scenario: str,
+    requirements: Optional[str] = None
+) -> List[TestCase]:
     tc_list: List[TestCase] = []
 
     tc_list.append(
