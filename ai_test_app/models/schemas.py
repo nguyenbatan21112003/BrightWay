@@ -24,3 +24,11 @@ class TestData(BaseModel):
 class TestGenerationResult(BaseModel):
     testcases: List[TestCase]
     test_data: List[TestData]
+
+
+class RenderReportRequest(BaseModel):
+    project_name: str
+    scenario: str
+    ai_model: Optional[str] = "mock-ai"
+    testcases: List[TestCase]
+    test_data: List[TestData]

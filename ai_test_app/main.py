@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from .models.schemas import TestRequest
+from .models.schemas import TestRequest, TestGenerationResult, RenderReportRequest
 from .system.ai_generator import generate_from_scenario
 from .reports.report_generator import render_report_to_html
 from pathlib import Path
@@ -17,39 +17,59 @@ async def read_root():
         return HTMLResponse(content=f.read())
 
 
-@app.post("/generate_test")
-def generate_test(req: TestRequest):
+# API 1: Sinh testcase + testdata
+@app.post("/generate_testcases", response_model=TestGenerationResult)
+def generate_testcases(req: TestRequest):
+    """
+    API 1: Gọi SYSTEM để sinh testcase + testdata
+    """
     try:
-        # 1. gọi SYSTEM để sinh testcase + testdata
         result = generate_from_scenario(
             project_name=req.project_name,
             scenario=req.scenario,
             requirements=req.requirements
         )
-        # 2. render ra report HTML
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi khi sinh testcase: {str(e)}")
+
+
+# API 2: Render report HTML
+@app.post("/render_report")
+def render_report_api(req: RenderReportRequest):
+    """
+    API 2: Render ra report HTML từ testcases và test_data
+    """
+    try:
         report_path = render_report_to_html(
             project_name=req.project_name,
             scenario=req.scenario,
             ai_model=req.ai_model or "mock-ai",
-            testcases=result.testcases,
-            test_data=result.test_data
+            testcases=req.testcases,
+            test_data=req.test_data
         )
-
-        # 3. trả về file luôn (hoặc trả về path)
+        
         return {
-            "message": "Sinh testcase thành công",
+            "message": "Render report thành công",
             "report_path": report_path.replace("\\", "/"),
-            "testcases_count": len(result.testcases),
-            "test_data_count": len(result.test_data)
+            "filename": Path(report_path).name
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Lỗi khi render report: {str(e)}")
 
 
+# API 3: Tải file report
 @app.get("/download_report")
 def download_report(path: str):
-    """Cho tải file đã render"""
-    file_path = Path(path)
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Không tìm thấy file báo cáo")
-    return FileResponse(path, media_type="text/html", filename=file_path.name)
+    """
+    API 3: Tải file report đã render
+    """
+    try:
+        file_path = Path(path)
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Không tìm thấy file báo cáo")
+        return FileResponse(path, media_type="text/html", filename=file_path.name)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi khi tải file: {str(e)}")
