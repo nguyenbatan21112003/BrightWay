@@ -103,11 +103,22 @@
             font-family: inherit;
         }
 
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #999;
+            opacity: 0.7;
+        }
+
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:focus::placeholder,
+        .form-group textarea:focus::placeholder {
+            opacity: 0.5;
         }
 
         .form-group textarea {
@@ -350,7 +361,7 @@
                             <i class="fas fa-project-diagram"></i> Tên dự án
                         </label>
                         <input type="text" id="project_name" name="project_name" required 
-                               value="E-commerce Checkout" placeholder="Nhập tên dự án...">
+                               placeholder="Nhập tên dự án...">
                     </div>
 
                     <div class="form-group">
@@ -358,7 +369,7 @@
                             <i class="fas fa-list-ol"></i> Kịch bản (Scenario)
                         </label>
                         <textarea id="scenario" name="scenario" required 
-                                  placeholder="Mô tả kịch bản kiểm thử...">Người dùng thêm sản phẩm vào giỏ và thanh toán thành công.</textarea>
+                                  placeholder="Mô tả kịch bản kiểm thử..."></textarea>
                     </div>
 
                     <div class="form-group">
@@ -366,7 +377,7 @@
                             <i class="fas fa-clipboard-check"></i> Yêu cầu (Requirements)
                         </label>
                         <textarea id="requirements" name="requirements" 
-                                  placeholder="Mô tả các yêu cầu cần kiểm tra...">Kiểm tra tính năng thêm sản phẩm, tính tổng tiền, thanh toán thành công.</textarea>
+                                  placeholder="Mô tả các yêu cầu cần kiểm tra..."></textarea>
                     </div>
 
                     <button type="submit" class="btn" id="submit-btn">
