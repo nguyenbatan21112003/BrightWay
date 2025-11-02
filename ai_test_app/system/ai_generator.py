@@ -16,8 +16,8 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
 
 
-def _build_prompt(project_name: str, scenario: str, requirements: Optional[str]):
-    # System prompt is now part of the main prompt for Gemini
+def _build_prompt(project_name: str, scenario: str, requirements: Optional[str]) -> str:
+    """Xây dựng prompt cho AI model"""
     return f"""Bạn là một kỹ sư QA/kiểm thử cao cấp. 
 Nhiệm vụ của bạn là tạo TEST CASES và TEST DATA cho kịch bản người dùng sau đây.
 Chỉ trả về JSON hợp lệ, không giải thích gì thêm.
@@ -65,8 +65,12 @@ def generate_from_scenario(
         content = resp.text.strip()
         if content.startswith("```json"):
             content = content[7:-3].strip()
-
-        print("AI RAW:", content)
+        elif content.startswith("```"):
+            # Handle other code block formats
+            lines = content.split('\n')
+            if len(lines) > 2:
+                content = '\n'.join(lines[1:-1]).strip()
+        
         data = json.loads(content)
 
         testcases = [
@@ -88,7 +92,6 @@ def generate_from_scenario(
 
     except Exception as e:
         # Fallback to rule-based generation if LLM fails
-        print(f"LLM error: {e}")
         fallback_tcs = generate_basic_testcases(project_name, scenario, requirements)
         return TestGenerationResult(
             testcases=fallback_tcs,
